@@ -15,6 +15,11 @@
                 "program": {
                     "command": "love" 
                 }
+            },
+            "windows": {
+                "program": {
+                    "command": ".bin/win/love.exe"
+                }
             }
         }
     ]
