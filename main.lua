@@ -161,9 +161,21 @@ function love.graphics.text(font, size, value, x, y)
     LG.print(tostring(value), x, y)
 end
 
-require "states"
+local emptyData = love.sound.newSoundData(1)
+local emptySource = LA.newSource(emptyData)
 
-BACKGROUND = require "background"
+--- Wraps a `love.Source` for graceful handling of missing audio.
+---@param source love.Source The source to wrap.
+function Audio(source)
+    if source then
+        return source
+    end
+
+    return emptySource
+end
+
+
+require "states"
 
 local canvas = LG.newCanvas(DESIGN_W, DESIGN_H)
 
