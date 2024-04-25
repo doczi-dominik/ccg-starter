@@ -174,6 +174,70 @@ function Audio(source)
     return emptySource
 end
 
+---@alias BoxColSecond fun(x2: number, y2: number, w2: number, h2: number): boolean
+
+--- Collision check on two boxes.
+---@param x1 number X coordinate of the first box.
+---@param y1 number Y coordinate of the first box.
+---@param w1 number Width of the first box.
+---@param h1 number Height of the first box.
+---@return BoxColSecond BoxColSecond A function which takes the second box and returns the result of the collision.
+function BoxCol(x1, y1, w1, h1)
+    local function boxColSecond(x2, y2, w2, h2)
+        return not (
+            x1 + w1 <= x2 or
+            x1 >= x2 + w2 or
+
+            y1 + h1 <= y2 or
+            y1 >= y2 + h2
+        )
+    end
+
+    return boxColSecond
+end
+
+---@class CollisionObject
+---@field x number
+---@field y number
+---@field w number
+---@field h number
+---@field dx number?
+---@field dy number?
+
+---@alias ObjColSecond fun(o: CollisionObject, x2: number?, y2: number?, w2: number?, h2: number?, dx2: number?, dy2: number?)
+
+--- Performs box collision on two `CollisionObject`-s that contain position and velocity information.
+---@param t CollisionObject The first `CollisionObject`. 
+---@param x1 number? The X coordinate of the first object. **Only used if `t == nil`.**
+---@param y1 number? The Y coordinate of the first object. **Only used if `t == nil`.**
+---@param w1 number? The width of the first object. **Only used if `t == nil`.**
+---@param h1 number? The height of the first object. **Only used if `t == nil`.**
+---@param dx1 number? The X velocity of the first object for better collision checking. If not passed, `0` is implied.
+---@param dy1 number? The Y velocity of the first object for better collision checking. If not passed, `0` is implied.
+---@return ObjColSecond ObjColSecond A function which takes the second object (or the manually specified parameters) and returns the result of the collision.
+function ObjCol(t, x1, y1, w1, h1, dx1, dy1)
+    t = t or {
+        x = x1 + (dx1 or 0),
+        y = y1 + (dy1 or 0),
+        w = w1,
+        h = h1
+    }
+
+    local colWithT = BoxCol(t.x + (t.dx or dx1), t.y + (t.dy or dy1), t.w, t.h)
+
+    local function objColSecond(o, x2, y2, w2, h2, dx2, dy2)
+        o = o or {
+            x = x2 + (dx2 or 0),
+            y = y2 + (dy2 or 0),
+            w = w2,
+            h = h2
+        }
+
+        return colWithT(o.x + (o.dx or dx2), o.y + (o.dy or dy2), o.w, o.h)
+    end
+
+    return objColSecond
+end
 
 require "states"
 
