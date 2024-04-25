@@ -17,7 +17,7 @@ end
     Max Frame Skip is how many frames to allow skipped due to lag of simulation outpacing (on slow PCs) tickrate
 ---]]
 -- 1 / Ticks Per Second
-local TICK_RATE = 1 / 100
+local TICK_RATE = 1 / 60
 -- How many Frames are allowed to be skipped at once due to lag (no "spiral of death")
 local MAX_FRAME_SKIP = 25
 -- No configurable framerate cap currently, either max frames CPU can handle (up to 1000), or vsync'd if conf.lua
