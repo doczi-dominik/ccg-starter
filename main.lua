@@ -75,6 +75,7 @@ require "resources"
 ---@field init fun()
 ---@field update fun()
 ---@field draw fun(alpha: number)
+---@field drawHUD nil | fun(alpha: number)
 ---@field mouseMoved nil | fun(x: number, y: number, dx: number, dy: number, isTouch: boolean)
 ---@field mousePressed nil | fun(x: number, y: number, button: number, isTouch: boolean)
 ---@field mouseReleased nil | fun(x: number, y: number, button: number, isTouch: boolean)
@@ -243,6 +244,74 @@ function ObjCol(t, x1, y1, w1, h1, dx1, dy1)
     return objColSecond
 end
 
+---@alias EasingFunction fun(start: number, finish: number, progress: number)
+
+--- Linear Interpolation
+---@param start number The starting value.
+---@param finish number The ending value.
+---@param progress number The current progress or "percentage". `0 == start`, `1 == end`, `0.5` is halfway between `start` and `end`, etc.
+---@return number value The resulting number in the range `[start, finish]`.
+function Lerp(start, finish, progress)
+    return start + (finish - start) * progress
+end
+
+--- Interpolation with exponential stopping. Starts very fast, slows down smoothly at the end.
+---@param start number The starting value.
+---@param finish number The ending value.
+---@param progress number The current progress or "percentage". `0 == start`, `1 == end`, `0.5` is halfway between `start` and `end`, etc.
+---@return number value The resulting number in the range `[start, finish]`.
+function EaseOutExp(start, finish, progress)
+    return start + (1 - 2^(-10 * progress)) * (finish - start)
+end
+
+local camX = 0
+local camY = 0
+
+local camStartX = 0
+local camStartY = 0
+local camTargetX = 0
+local camTargetY = 0
+local camTimer = 1
+local camTimerIncr = 0
+local camEasing
+
+local camTrackTarget
+
+--- Immediately snap the camera to the given target.
+---@param x number The X coordinate.
+---@param y number The Y coordinate.
+function CamSnapTo(x, y)
+    camX, camY = x, y
+    camTargetX, camTargetY = x, y
+    camTimer = 1
+end
+
+--- Smoothly move to the camera to a target.
+---@param x number The target X coordinate.
+---@param y number The target Y coordinate.
+---@param duration? number The duration **in frames** the transition should take. **Defaults to 25 frames**.
+---@param easing EasingFunction An easing function to make the transition more smooth. **Defaults to `EaseOutExp`**.
+function CamMoveTo(x, y, duration, easing)
+    camStartX, camStartY = camX, camY
+    camTargetX, camTargetY = x, y
+    camTimer = 0
+    camTimerIncr = 1/(duration or 25)
+    camEasing = easing or EaseOutExp
+end
+
+---@class CameraTrackingObject
+---@field x number
+---@field y number
+---@field w? number
+---@field h? number
+
+--- Set the camera to track a `CollisionObject`, keeping it at the center of the screen.
+--- **Omit the `target` parameter to disable tracking.**
+---@param target? CameraTrackingObject The object to track. If `w` and/or `h` are present, the object's center point is tracked on the respective axis, otherwise only `x` and `y` are used.
+function CamTrack(target)
+    camTrackTarget = target
+end
+
 require "states"
 
 local canvas = LG.newCanvas(DESIGN_W, DESIGN_H)
@@ -295,6 +364,19 @@ end
 
 function love.update()
     state.update()
+
+    if camTrackTarget then
+        local xOffset = camTrackTarget.w and camTrackTarget.w/2 or 0
+        local yOffset = camTrackTarget.h and camTrackTarget.h/2 or 0
+
+        camX = camTrackTarget.x + xOffset - DESIGN_W/2
+        camY = camTrackTarget.y + yOffset - DESIGN_H/2
+    elseif camTimer < 1 then
+        camX = camEasing(camStartX, camTargetX, camTimer)
+        camY = camEasing(camStartY, camTargetY, camTimer)
+
+        camTimer = camTimer + camTimerIncr
+    end
 end
 
 function love.draw(alpha)
@@ -305,7 +387,14 @@ function love.draw(alpha)
         LG.push()
         LG.clear()
 
+        LG.translate(-camX, -camY)
         state.draw(alpha)
+
+        LG.translate(0, 0)
+
+        if state.drawHUD then
+            state.drawHUD(alpha)
+        end
 
         LG.pop()
         LG.setCanvas()
