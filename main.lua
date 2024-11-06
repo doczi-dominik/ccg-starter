@@ -273,9 +273,15 @@ local camTargetX = 0
 local camTargetY = 0
 local camTimer = 1
 local camTimerIncr = 0
+
+--- @type EasingFunction
 local camEasing
 
 local camTrackTarget
+local camTrackBoundX
+local camTrackBoundY
+local camTrackBoundW
+local camTrackBoundH
 
 --- Immediately snap the camera to the given target.
 ---@param x number The X coordinate.
@@ -305,11 +311,33 @@ end
 ---@field w? number
 ---@field h? number
 
---- Set the camera to track a `CollisionObject`, keeping it at the center of the screen.
+--- Set the camera to track a `CollisionObject`, pushing the camera if the object tries to step outside of the *camera bounding box*.
 --- **Omit the `target` parameter to disable tracking.**
 ---@param target? CameraTrackingObject The object to track. If `w` and/or `h` are present, the object's center point is tracked on the respective axis, otherwise only `x` and `y` are used.
-function CamTrack(target)
+---@param width? number The width of the *camera bounding box*. If not provided, the whole screen if used.
+---@param height? number The height of the *camera bounding box*. If ommited, the size of `width` is used.
+---@overload fun(target: CameraTrackingObject, width: number)
+---@overload fun(target: CameraTrackingObject)
+---@overload fun()
+function CamTrack(target, width, height)
+    if not target then
+        camTrackTarget = nil
+        return
+    end
+
+    height = height or width
+
+    if not width then
+        width = DESIGN_W
+        height = DESIGN_H
+    end
+
     camTrackTarget = target
+
+    camTrackBoundX = (DESIGN_W - width)/2
+    camTrackBoundY = (DESIGN_H - height)/2
+    camTrackBoundW = width
+    camTrackBoundH = height
 end
 
 require "states"
@@ -369,14 +397,30 @@ function love.update()
         local xOffset = camTrackTarget.w and camTrackTarget.w/2 or 0
         local yOffset = camTrackTarget.h and camTrackTarget.h/2 or 0
 
-        camX = camTrackTarget.x + xOffset - DESIGN_W/2
-        camY = camTrackTarget.y + yOffset - DESIGN_H/2
+        local x = camTrackTarget.x + xOffset - camX
+        local y = camTrackTarget.y + yOffset - camY
+
+        local endX = camTrackBoundX + camTrackBoundW
+        local endY = camTrackBoundY + camTrackBoundH
+
+        if x < camTrackBoundX then
+            camX = camX - (camTrackBoundX - x)
+        elseif x > endX then
+            camX = camX + (x - endX)
+        end
+
+        if y < camTrackBoundY then
+            camY = camY - (camTrackBoundY - y)
+        elseif y > endY then
+            camY = camY + (y - endY)
+        end
     elseif camTimer < 1 then
         camX = camEasing(camStartX, camTargetX, camTimer)
         camY = camEasing(camStartY, camTargetY, camTimer)
 
         camTimer = camTimer + camTimerIncr
     end
+
 end
 
 function love.draw(alpha)
@@ -387,14 +431,18 @@ function love.draw(alpha)
         LG.push()
         LG.clear()
 
+        LG.push()
         LG.translate(-camX, -camY)
         state.draw(alpha)
-
-        LG.translate(0, 0)
+        LG.pop()
 
         if state.drawHUD then
             state.drawHUD(alpha)
         end
+
+        LG.setColor(1, 0, 0)
+        --LG.rectangle("line", camTrackBoundX, camTrackBoundY, camTrackBoundW, camTrackBoundH)
+        LG.setColor(1, 1, 1)
 
         LG.pop()
         LG.setCanvas()
