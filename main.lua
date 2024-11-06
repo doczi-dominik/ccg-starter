@@ -22,6 +22,7 @@ local TICK_RATE = 1 / 60
 local MAX_FRAME_SKIP = 25
 -- No configurable framerate cap currently, either max frames CPU can handle (up to 1000), or vsync'd if conf.lua
 function love.run()
+    ---@diagnostic disable-next-line: undefined-field
     if love.load then love.load(love.arg.parseGameArguments(arg), arg) end
 
     -- We don't want the first frame's dt to include time taken by love.load.
@@ -34,10 +35,12 @@ function love.run()
             love.event.pump()
             for name, a,b,c,d,e,f in love.event.poll() do
                 if name == "quit" then
+                    ---@diagnostic disable-next-line: undefined-field
                     if not love.quit or not love.quit() then
                         return a or 0
                     end
                 end
+                ---@diagnostic disable-next-line: undefined-field
                 love.handlers[name](a,b,c,d,e,f)
             end
         end
@@ -110,7 +113,7 @@ function love.graphics.spr(sprite, x, y, sx, sy, r)
     y = y or (DESIGN_H-h)/2
 
     if SPRITESHEET then
-        LG.draw(SPRITESHEET, sprite, x, y, r, sx, sy)
+        LG.draw(SPRITESHEET, sprite --[[@as love.Quad]], x, y, r, sx, sy)
 
         return
     end
@@ -129,7 +132,7 @@ function love.graphics.spr(sprite, x, y, sx, sy, r)
         return
     end
 
-    LG.draw(sprite, x, y, r or 0, sx, sy)
+    LG.draw(sprite --[[@as love.Image]], x, y, r or 0, sx, sy)
 end
 
 
@@ -439,10 +442,6 @@ function love.draw(alpha)
         if state.drawHUD then
             state.drawHUD(alpha)
         end
-
-        LG.setColor(1, 0, 0)
-        --LG.rectangle("line", camTrackBoundX, camTrackBoundY, camTrackBoundW, camTrackBoundH)
-        LG.setColor(1, 1, 1)
 
         LG.pop()
         LG.setCanvas()
