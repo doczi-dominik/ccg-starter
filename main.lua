@@ -342,6 +342,58 @@ function CamTrack(target, width, height)
     camTrackBoundW = width
     camTrackBoundH = height
 end
+---@generic T
+---@param list T[] Continous array to filter
+---@param callback fun(element: T): boolean Function that gets called for every element. If `true` is returned, the element is removed
+function table.filter(list, callback)
+    local idx_old = 1
+    local idx_new = 1
+
+    local list_size_tmp = #list
+    while idx_old <= list_size_tmp do
+        local element = list[idx_old];
+        if callback(element) then
+            list[idx_old] = nil
+            idx_old = idx_old + 1
+        else
+            if idx_old ~= idx_new then
+                list[idx_new] = element;
+                list[idx_old] = nil;
+            end
+            idx_old = idx_old + 1
+            idx_new = idx_new + 1
+        end
+    end
+end
+
+---@class Updateable
+---@field update fun(...)
+---@field isDead? fun(): boolean
+
+---@class Drawable
+---@field draw fun(alpha: number)
+
+---@param list Updateable[]
+---@param ... any
+function table.update(list, ...)
+    table.filter(list, function(e)
+        e.update(arg)
+
+        if e.isDead then
+            return e.isDead()
+        end
+
+        return false
+    end)
+end
+
+---@param list Drawable[]
+---@param alpha number
+function table.draw(list, alpha)
+    for i=1, #list do
+        list[i].draw(alpha)
+    end
+end
 
 require "states"
 
