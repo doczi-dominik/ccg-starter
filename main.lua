@@ -84,6 +84,14 @@ LG.setDefaultFilter("nearest", "nearest")
 
 require("resources")
 
+for k, v in pairs(SFX) do
+    SFX[k] = LA.newSource(v, "static")
+end
+
+for k, v in pairs(BGM) do
+    BGM[k] = LA.newSource(v, "stream")
+end
+
 -- State Management
 
 ---@class State
@@ -183,6 +191,8 @@ end
 local emptyData = love.sound.newSoundData(1)
 local emptySource = LA.newSource(emptyData)
 
+local placeholderSfx = LA.newSource("resources/placeholder-sfx.ogg", "static")
+
 --- Wraps a `love.Source` for graceful handling of missing audio.
 ---@param source love.Source The source to wrap.
 function Audio(source)
@@ -190,7 +200,31 @@ function Audio(source)
         return source
     end
 
-    return emptySource
+    return placeholderSfx
+end
+
+---@param id string The name of the SFX (defined in resources/audio.lua)
+---@return love.Source love.Source The SFX in question, or the placeholder SFX if not found.
+function GetSFX(id)
+    local sfx = SFX[id]
+
+    if sfx == nil then
+        return placeholderSfx
+    end
+
+    ---@type love.Source
+    return sfx
+end
+
+function GetBGM(id)
+    local bgm = BGM[id]
+
+    if bgm == nil then
+        return emptySource
+    end
+
+    ---@type love.Source
+    return bgm
 end
 
 ---@alias BoxColSecond fun(x2: number, y2: number, w2: number, h2: number): boolean
@@ -272,6 +306,45 @@ function EaseOutExp(start, finish, progress)
     return start + (1 - 2 ^ (-10 * progress)) * (finish - start)
 end
 
+---@class Spring
+---@field x number The value of the spring
+---@field target_x number The initial value to spring back to
+---@field k number The current stiffness
+---@field d number The current damping
+---@field v number idk what this is exactly
+---@field pull fun(self: Spring, f: number, k?: number, d?: number) Pull the spring with the specified value, optionally set new Stiffness or Damping
+---@field update fun(self: Spring, dt: number) Function that is mandatory to call every frame
+
+---@param x? number Initial value, **default: 0**
+---@param k? number Stiffness, **default: 100**
+---@param d? number Damping **default: 10**
+---@return Spring
+function Spring(x, k, d)
+    local t = {}
+    t.x = x or 0
+    t.k = k or 100
+    t.d = d or 10
+    t.target_x = t.x
+    t.v = 0
+
+    t.update = function(self, dt)
+        local a = -self.k * (self.x - self.target_x) - self.d * self.v
+        self.v = self.v + a * dt
+        self.x = self.x + self.v * dt
+    end
+    t.pull = function(self, f, k, d)
+        if k then
+            self.k = k
+        end
+        if d then
+            self.d = d
+        end
+        self.x = self.x + f
+    end
+
+    return t
+end
+
 --- Filter elements from a table
 ---@generic T
 ---@param list T[] Continous array to filter
@@ -319,7 +392,7 @@ function table.update(list, ...)
 end
 
 ---@param list Drawable[]
----@param alpha number
+---@param alpha number Interpolation value - must be multiplied with when things are in motion
 function table.draw(list, alpha)
     for i = 1, #list do
         list[i].draw(alpha)
@@ -378,34 +451,6 @@ end
 
 function love.update()
     state.update()
-
-    if camTrackTarget then
-        local xOffset = camTrackTarget.w and camTrackTarget.w / 2 or 0
-        local yOffset = camTrackTarget.h and camTrackTarget.h / 2 or 0
-
-        local x = camTrackTarget.x + xOffset - camX
-        local y = camTrackTarget.y + yOffset - camY
-
-        local endX = camTrackBoundX + camTrackBoundW
-        local endY = camTrackBoundY + camTrackBoundH
-
-        if x < camTrackBoundX then
-            camX = camX - (camTrackBoundX - x)
-        elseif x > endX then
-            camX = camX + (x - endX)
-        end
-
-        if y < camTrackBoundY then
-            camY = camY - (camTrackBoundY - y)
-        elseif y > endY then
-            camY = camY + (y - endY)
-        end
-    elseif camTimer < 1 then
-        camX = camEasing(camStartX, camTargetX, camTimer)
-        camY = camEasing(camStartY, camTargetY, camTimer)
-
-        camTimer = camTimer + camTimerIncr
-    end
 end
 
 function love.draw(alpha)
@@ -417,7 +462,6 @@ function love.draw(alpha)
         LG.clear()
 
         LG.push()
-        LG.translate(-camX, -camY)
         state.draw(alpha)
         LG.pop()
 
@@ -441,4 +485,3 @@ function love.draw(alpha)
     LG.setColor(1, 1, 1, 1)
     LG.draw(canvas, x, y, 0, scale, scale)
 end
-

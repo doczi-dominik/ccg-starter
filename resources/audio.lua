@@ -1,10 +1,7 @@
+--- Map names to filenames
 
----@type { [string]: love.Source }
-BGM = {
+---@type { [string]: string }
+BGM = {}
 
-}
-
----@type { [string]: love.Source }
-SFX = {
-
-}
+---@type { [string]: string }
+SFX = {}
