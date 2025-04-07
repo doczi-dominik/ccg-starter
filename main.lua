@@ -104,6 +104,7 @@ end
 ---@field mouseReleased nil | fun(x: number, y: number, button: number, isTouch: boolean)
 ---@field keyPressed nil | fun(key: love.KeyConstant, scancode: love.Scancode, isRepeat: boolean)
 ---@field keyReleased nil | fun(key: love.KeyConstant, scancode: love.Scancode)
+---@field wheelMoved nil | fun(dx: number, dy: number)
 
 ---@type State
 local state
@@ -410,6 +411,16 @@ function love.mousemoved(x, y, dx, dy, istouch)
 
     if BACKGROUND.mouseMoved then
         BACKGROUND.mouseMoved(x, y, dx, dy, istouch)
+    end
+end
+
+function love.wheelmoved(dx, dy)
+    if state.wheelMoved then
+        state.wheelMoved(dx, dy)
+    end
+
+    if BACKGROUND.wheelMoved then
+        BACKGROUND.wheelMoved(x, y)
     end
 end
 
