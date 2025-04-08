@@ -85,20 +85,6 @@ _G["print"] = function(...)
 end
 
 local padding = '\t'
-_G["dump"] = function(o ,depth)
-    depth = depth or 0
-    if type(o) == 'table' then
-        print(string.rep(padding, depth) .. '{')
-        for k,v in pairs(o) do
-            if type(k) ~= 'number' then k = '"'..k..'"' end
-            print(string.rep(padding, depth + 1) .. '['..k..'] = ')
-            dump(v, depth + 1)
-        end
-        print(string.rep(padding, depth) .. '}')
-    else
-        print(string.rep(padding, depth) .. tostring(o))
-    end
-end
 
 
 --Error catcher
