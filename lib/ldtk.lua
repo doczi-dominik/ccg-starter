@@ -60,6 +60,79 @@ local cache = {
     }
 }
 
+---@class LDTK
+---@field x number
+---@field y number
+---@field levels { [string]: number }
+---@field cache table
+---@field data table
+---@field levelsNames string[]
+---@field flipped boolean
+---@field countOfLayers number
+---@field countOfLevels number
+---@field currentLevelName string 
+---@field entities table
+---@field onEntity fun(layer: LDTK.Entity)
+---@field onLayer fun(layer: LDTK.Layer, level: string)
+---@field onLevelLoaded fun(level: LDTK.Level)
+---@field onLevelCreated fun(level: LDTK.Level)
+---@field getFlipped fun(self: LDTK): boolean
+---@field setFlipped fun(self: LDTK, flipped: boolean)
+---@field getCurrentName fun(self: LDTK): string Current level name
+---@field getCurrent fun(self: LDTK): number Current level index
+---@field getName fun(self: LDTK, index: number): string Get name of level based on its index
+---@field reload fun(self: LDTK) Reload current level
+---@field next fun(self: LDTK) Load next level
+---@field previous fun(self: LDTK) Load previous level
+---@field level fun(self: LDTK, name: string) Load level by its name
+---@field goTo fun(self: LDTK, index: number) Load level by its index
+---@field load fun(self: LDTK, file: string, level: number | nil) Load ldtk file with relative path from main, with optional level to preload
+
+---@class LDTK.Level
+---@field width number Width in pixels
+---@field height number Height in pixels
+---@field backgroundColor [ number, number, number, number] (r, g, b, a)
+---@field id string Name of level
+---@field index number
+---@field worldX number
+---@field worldY number
+---@field props table
+---@field neighbours table
+
+
+---@class LDTK.Entity
+---@field id string
+---@field x number
+---@field y number
+---@field width number
+---@field height number
+---@field visible boolean
+---@field px number pivot x
+---@field py number pivot y
+---@field order number
+---@field props table
+
+---@class LDTK.Layer
+---@field x number
+---@field y number
+---@field width number Width of layer in tiles
+---@field height number Height of layer in tiles
+---@field gridSize number Size of tile in pixels
+---@field visible boolean
+---@field draw fun(self: LDTK.Layer)
+---@field color [ number, number, number, number ] (r, g, b, a)
+---@field _offsetX [ number, number, number, number ]
+---@field _offsetY [ number, number, number, number ]
+---@field intGrid any | nil
+---@field tiles any
+---@field _tilesLen number
+---@field path string
+---@field relPath string
+---@field id string Name of the layer
+---@field tileset any 
+---@field tilesetID any
+
+---@class LDTK
 local ldtk = {
     levels = {},
     levelsNames = {},
