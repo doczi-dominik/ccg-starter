@@ -57,6 +57,27 @@ local function addLayer( self, name, scale, flags )
 	return new
 end
 
+---@class CameraFlags
+---@field x number | nil
+---@field y number | nil
+---@field translationX number | nil
+---@field translationY number | nil
+---@field offsetX number | nil
+---@field offsetY number | nil
+---@field scale number | nil
+---@field rotation number | nil
+---@field resizable boolean | nil
+---@field maintainAspectRatio boolean | nil
+---@field center boolean | nil
+---@field mode love.StackType | nil
+---@field update fun(self, containerW, containerH) | nil The function called every frame used to control scaling and size. By default, if the camera is resizable, the resizing function is called, passing itself and the results of cam:getContainerDimensions.
+---@field resizingFunction fun(self, containerW, containerH) | nil Only called if the resizable flag is true. Used to set the width and height of the camera, as well as any other changes due to resizing. By default, the function changes the aspectRatioScale, offsetX and offsetY, w, and h of the camera and takes the parameters self, containerW, and containerH.
+
+
+---@param w number
+---@param h number
+---@param flags CameraFlags
+---@return table
 local function newCamera( w, h, flags )
 	local scale, scaleW, scaleH
 
