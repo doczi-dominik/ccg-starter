@@ -50,6 +50,23 @@ function ChangeState(s)
     state = s
 end
 
+--- Get wasd input using isDown(), or if a keycode is given, checks that
+---@param keycode string | nil
+---@return integer X-axis
+---@return integer Y-axis
+function get_wasd_axis(keycode)
+    local x = 0
+    local y = 0
+
+    if LK.isDown("w") or keycode == "w" then y = -1 end
+    if LK.isDown("s") or keycode == "s" then y = 1 end
+    if LK.isDown("a") or keycode == "a" then x = -1 end
+    if LK.isDown("d") or keycode == "d" then x = 1 end
+
+    return x, y
+end
+
+
 --- Draws a sprite OR a red placeholder if the sprite cannot be found
 ---@param sprite love.Image|love.Quad If `SPRITESHEET` is defined, pass a `Quad`, otherwise pass the `Image` to draw
 ---@param x number? X coordinate. nil means center on x-axis.
