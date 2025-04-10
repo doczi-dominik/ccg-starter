@@ -1,10 +1,19 @@
 
----@type State
+---@class State
 local s = {}
-local cam = Cam.new(300, 300, { x = 0, y = 0, offsetX = 0, offsetY = 0, center = true, resizable = true, maintainAspectRatio = true })
+
+local cam = Cam.new(300, 300, { x = 0, y = 0, offsetX = 0, offsetY = 0, maintainAspectRatio = true })
 cam:addLayer("bg_1", 1, { relativeScale = 0.8 })
 cam:addLayer("bg_2", 1, { relativeScale = 0.5 })
 cam:addLayer("bg_3", 1, { relativeScale = 0.2 })
+
+local function scale_cam_to_size(cam, s)
+    local ws = DESIGN_W / s
+    local hs = DESIGN_H / s
+    cam:setScale( math.min(ws, hs))
+end
+
+scale_cam_to_size(cam, 100)
 
 
 function s.init()
@@ -14,21 +23,9 @@ function s.update()
     cam:update()
     cam:setOffset(0,0)
 
-    if LK.isDown("a") then
-        cam:increaseTranslation(-1, 0)
-    end
-
-    if LK.isDown("w") then
-        cam:increaseTranslation(0, -1)
-    end
-
-    if LK.isDown("s") then
-        cam:increaseTranslation(0, 1)
-    end
-
-    if LK.isDown("d") then
-        cam:increaseTranslation(1, 0)
-    end
+    local x, y = get_wasd_axis()
+    print(x, y)
+    cam:increaseTranslation(x, y)
 
     if LK.isDown("q") then
         local x, y = cam:getWorldCoordinates(WINDOW_W/2, WINDOW_H/2)
@@ -61,6 +58,11 @@ function s.draw()
     LG.rectangle("fill", 100, 150, 100, 150)
     LG.rectangle("fill", 500, 150, 100, 150)
     cam:pop("bg_1")
+
+    LG.setColor(1, 0, 0)
+    cam:push("main")
+    LG.rectangle("fill", 100, 100, 50, 50)
+    cam:pop("main")
 end
 
 return s
