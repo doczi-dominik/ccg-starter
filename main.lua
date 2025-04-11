@@ -66,7 +66,6 @@ function get_wasd_axis(keycode)
     return x, y
 end
 
-
 --- Draws a sprite OR a red placeholder if the sprite cannot be found
 ---@param sprite love.Image|love.Quad If `SPRITESHEET` is defined, pass a `Quad`, otherwise pass the `Image` to draw
 ---@param x number? X coordinate. nil means center on x-axis.

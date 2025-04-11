@@ -7,13 +7,7 @@ cam:addLayer("bg_1", 1, { relativeScale = 0.8 })
 cam:addLayer("bg_2", 1, { relativeScale = 0.5 })
 cam:addLayer("bg_3", 1, { relativeScale = 0.2 })
 
-local function scale_cam_to_size(cam, s)
-    local ws = DESIGN_W / s
-    local hs = DESIGN_H / s
-    cam:setScale( math.min(ws, hs))
-end
-
-scale_cam_to_size(cam, 100)
+--scale_cam_to_size(cam, 100)
 
 
 function s.init()
@@ -24,6 +18,7 @@ function s.update()
     cam:setOffset(0,0)
 
     local x, y = get_wasd_axis()
+    
     print(x, y)
     cam:increaseTranslation(x, y)
 
